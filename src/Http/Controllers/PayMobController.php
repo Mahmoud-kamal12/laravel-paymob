@@ -86,7 +86,8 @@ class PayMobController extends Controller
           $user->email,
           $user->phone
         );
-
+        $redirect = "https://accept.paymobsolutions.com/api/acceptance/iframes/".config('paymob.iframe_id')."?payment_token=".$payment->token;
+        return redirect($redirect);
         # code...
     }
 
