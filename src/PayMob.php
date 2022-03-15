@@ -29,7 +29,7 @@ class PayMob
         $response = Http::withOptions([
             'verify' => false,
             ])->accept('application/json')
-            ->post($url, json_encode($json));
+            ->post($url, $json);
 
         
         return json_decode($response->body());
