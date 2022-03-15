@@ -9,7 +9,7 @@
  */
 
 namespace BaklySystems\PayMob;
-
+use Illuminate\Support\Facades\Http;
 class PayMob
 {
     public function __construct()
@@ -26,25 +26,13 @@ class PayMob
      */
     protected function cURL($url, $json)
     {
-        // Create curl resource
-        $ch = curl_init($url);
+        $response = Http::withOptions([
+            'verify' => false,
+            ])->accept('application/json')
+            ->post($url, json_encode($json));
 
-        // Request headers
-        $headers = array();
-        $headers[] = 'Content-Type: application/json';
-
-        // Return the transfer as a string
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($json));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        // $output contains the output string
-        $output = curl_exec($ch);
-
-        // Close curl resource to free up system resources
-        curl_close($ch);
-        return json_decode($output);
+        
+        return json_decode($response->body());
     }
 
     /**
@@ -55,23 +43,13 @@ class PayMob
      */
     protected function GETcURL($url)
     {
-        // Create curl resource
-        $ch = curl_init($url);
 
-        // Request headers
-        $headers = array();
-        $headers[] = 'Content-Type: application/json';
+        $response = Http::withOptions([
+            'verify' => false,
+            ])->accept('application/json')
+            ->get($url);
 
-        // Return the transfer as a string
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        // $output contains the output string
-        $output = curl_exec($ch);
-
-        // Close curl resource to free up system resources
-        curl_close($ch);
-        return json_decode($output);
+        return json_decode($response->body());
     }
 
     /**
@@ -88,7 +66,7 @@ class PayMob
 
         // Send curl
         $auth = $this->cURL(
-            'https://accept.paymobsolutions.com/api/auth/tokens',
+            'https://accept.paymob.com/api/auth/tokens',
             $json
         );
 
@@ -113,12 +91,13 @@ class PayMob
             'merchant_order_id'      => $merchant_order_id,
             'currency'               => 'EGP',
             'notify_user_with_email' => true,
-            'items'                  => $items
+            'items'                  => $items,
+            'auth_token'             => $token
         ];
 
         // Send curl
         $order = $this->cURL(
-            'https://accept.paymobsolutions.com/api/ecommerce/orders?token='.$token,
+            'https://accept.paymob.com/api/ecommerce/orders',
             $json
         );
 
@@ -152,6 +131,7 @@ class PayMob
       ) {
         // Request body
         $json = [
+            'auth_token'   => $token,
             'amount_cents' => $amount_cents,
             'expiration'   => 36000,
             'order_id'     => $order_id,
@@ -173,7 +153,7 @@ class PayMob
 
         // Send curl
         $payment_key = $this->cURL(
-            'https://accept.paymobsolutions.com/api/acceptance/payment_keys?token='.$token,
+            'https://accept.paymob.com/api/acceptance/payment_keys',
             $json
         );
 
